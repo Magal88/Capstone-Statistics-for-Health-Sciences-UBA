@@ -21,7 +21,7 @@ This repository contains a **Capstone Project** analyzing **overall survival** i
 - MRD confirmed as the **most relevant prognostic factor**
 
 
-  All analyses performed in **R (v4.1.3)**
+  All analyses were performed in **R (v4.1.3)**
 
   
 

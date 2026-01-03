@@ -34,4 +34,4 @@ MRD confirmed as the most relevant prognostic factor
 
 All analyses performed in R (v4.1.3)
 
-Followed reproducible research practices
+

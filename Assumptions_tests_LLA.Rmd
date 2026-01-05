@@ -1,0 +1,215 @@
+---
+title: Survival Analysis in Pediatric Patients with Acute Lymphoblastic Leukemia in
+  Argentina- Assumptions-Statistical testing
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_notebook: default
+---
+
+## Assessment of Assumptions and Statistical Testing
+
+
+```{r message=FALSE,warning=FALSE}
+#Load required packages
+library(readxl)     
+library(ggplot2)
+library(car)
+library(dplyr)
+```
+
+
+```{r}
+   #Load data set
+data_lla <- read_excel("data_lla.xlsx")
+#Verify dimensions and first rows
+dim(data_lla)
+head(data_lla,3)
+
+```
+
+```{r}
+
+#Rename variables
+data_lla <- data_lla %>%
+  rename(
+    Sex = Sexo,
+    Age_cat = Edad_cat,
+    WBC_cat = Blancos_cat,
+    DownSyndrome = Down,
+    CNS = SNC,
+    Lineage = Estirpe,
+    TEL_gene = TEL,
+    MLL_gene = MLL,
+    Blasts_PB = Blastos,
+    Blasts_BM = MO,
+    Ploidy = Ploidia,
+    Pred_Response = RTA_PRED,
+    MRD_cat = CAT_ERM,
+    OS_status = SGSTATUS
+  )
+```
+
+
+```{r warning=FALSE,message=FALSE}
+#Categorical variables
+data_lla <- data_lla %>%
+  mutate_at(c("Sex","DownSyndrome","MLL_gene","Pred_Response",
+              "Lineage","TEL_gene","CNS","Age_cat","WBC_cat",
+              "Ploidy","MRD_cat"), factor)
+
+#Continuous variables
+data_lla <- data_lla %>%
+  mutate(
+    Blasts_PB = as.numeric(Blasts_PB),
+    Blasts_BM = as.numeric(Blasts_BM),
+    Edad = as.numeric(Edad)
+  )
+
+```
+
+
+```{r}
+#Save data set in csv file
+write.csv(data_lla, "data_lla.csv", row.names = FALSE)
+```
+
+
+```{r}
+
+# Categorical variables
+
+
+# MRD_cat vs DownSyndrome
+
+table1 <- table(data_lla$MRD_cat, data_lla$DownSyndrome)
+prop.table(table1)
+plot(table1, col=c("red","blue"), main="MRD categories vs Down syndrome")
+
+# Chi-square test
+
+chisq.test(table1)
+
+# If assumptions are not met, Fisher's exact test
+
+fisher.test(table1)
+
+# MRD_cat vs Ploidy
+
+table2 <- table(data_lla$MRD_cat, data_lla$Ploidy)
+plot(table2, col=c("red","blue","yellow","green"), main="MRD categories vs Ploidy")
+chisq.test(table2)
+
+# MRD_cat vs Pred_Response
+
+table3 <- table(data_lla$MRD_cat, data_lla$Pred_Response)
+plot(table3, col=c("red","blue","yellow"), main="MRD categories vs Prednisone response")
+chisq.test(table3)
+
+# MRD_cat vs Sex
+
+table4 <- table(data_lla$MRD_cat, data_lla$Sex)
+plot(table4, col=c("red","blue"), main="MRD categories vs Sex")
+chisq.test(table4)
+
+# MRD_cat vs CNS
+
+table5 <- table(data_lla$MRD_cat, data_lla$CNS)
+plot(table5, col=c("red","blue","yellow"), main="MRD categories vs CNS involvement")
+fisher.test(table5)  # if assumptions are not met
+
+# MRD_cat vs MLL_gene
+
+table6 <- table(data_lla$MRD_cat, data_lla$MLL_gene)
+plot(table6, col=c("red","blue"), main="MRD categories vs MLL gene")
+chisq.test(table6)
+fisher.test(table6)  # if assumptions are not met
+
+# MRD_cat vs TEL_gene
+
+table7 <- table(data_lla$MRD_cat, data_lla$TEL_gene)
+plot(table7, col=c("red","blue"), main="MRD categories vs TEL gene")
+chisq.test(table7)
+
+# MRD_cat vs Lineage
+
+table8 <- table(data_lla$MRD_cat, data_lla$Lineage)
+plot(table8, col=c("red","blue"), main="MRD categories vs Lineage")
+chisq.test(table8)
+
+# MRD_cat vs Age_cat
+
+table9 <- table(data_lla$MRD_cat, data_lla$Age_cat)
+plot(table9, col=c("red","blue"), main="MRD categories vs Age category")
+chisq.test(table9)
+
+# MRD_cat vs WBC_cat
+
+table10 <- table(data_lla$MRD_cat, data_lla$WBC_cat)
+plot(table10, col=c("red","blue"), main="MRD categories vs WBC category")
+chisq.test(table10)
+
+```
+
+
+```{r}
+# Continuous variables
+
+# Age
+
+hist(data_lla$Edad)
+shapiro.test(data_lla$Edad)
+
+mod_age <- lm(Edad ~ MRD_cat, data = data_lla)
+resid_age <- resid(mod_age)
+rstd_age <- rstandard(mod_age)
+pred_age <- fitted(mod_age)
+resid_data_age <- data.frame(resid_age, rstd_age, pred_age)
+
+shapiro.test(resid_age)
+qqnorm(resid_age); qqline(resid_age)
+ggplot(resid_data_age, aes(x=resid_age)) + geom_histogram()
+ggplot(resid_data_age, aes(x=pred_age, y=rstd_age)) + geom_point()
+
+# Blasts_PB
+
+hist(data_lla$Blasts_PB)
+shapiro.test(data_lla$Blasts_PB)
+mod_blastsPB <- lm(Blasts_PB ~ MRD_cat, data = data_lla)
+resid_blastsPB <- resid(mod_blastsPB)
+shapiro.test(resid_blastsPB)
+
+# Blasts_BM
+
+hist(data_lla$Blasts_BM)
+shapiro.test(data_lla$Blasts_BM)
+mod_blastsBM <- lm(Blasts_BM ~ MRD_cat, data = data_lla)
+resid_blastsBM <- resid(mod_blastsBM)
+shapiro.test(resid_blastsBM)
+
+
+## Homoscedasticity
+
+leveneTest(Edad ~ MRD_cat, data = data_lla)
+leveneTest(Blasts_PB ~ MRD_cat, data = data_lla)
+leveneTest(Blasts_BM ~ MRD_cat, data = data_lla)
+
+```
+
+In this case of the following variables:
+Blasts in Peripheral Blood (Blasts_PB): does not meet normality or homoscedasticity assumptions. Therefore, a Median test was applied.
+Blasts in Bone Marrow (MO): does not meet the assumption of normality but meets homoscedasticity. Therefore, a Wilcoxon/Mann-Whitney test is applied.
+
+
+```{r}
+library(coin)
+data_lla$OS_status <- factor(data_lla$OS_status)
+
+#Median test for Blasts_PB
+median_test(Blasts_PB ~ OS_status, data = data_lla)
+#Wilcoxon test for MO
+wilcox.test(Blasts_BM ~ OS_status, data = data_lla)
+
+```
+
+

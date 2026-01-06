@@ -1,0 +1,43 @@
+---
+title: "Missing Data Analysis-ALL"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_notebook: default
+---
+
+This section presents an exploratory analysis of missing data in the ALL dataset.
+
+```{r}
+#Load data set
+df.all <-  read.csv("data_lla.csv", 
+                       header = TRUE, stringsAsFactors = FALSE)
+#See first 3 rows
+head(df.all,3)
+```
+
+```{r warning=FALSE,message=FALSE}
+# Load required packages
+library(dplyr)
+library(ggplot2)
+library(naniar)
+library(visdat)
+
+```
+
+
+```{r}
+# Summary of missing values per variable
+colSums(is.na(df.all))
+
+# Visualize missing data pattern
+vis_miss(df.all, sort_miss = TRUE)
+
+# Clustered visualization of missingness
+vis_miss(df.all, cluster = TRUE)
+
+# Visualize data types and missing values
+vis_dat(df.all)
+
+```
+
